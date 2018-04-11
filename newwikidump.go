@@ -13,14 +13,14 @@ import (
 )
 
 // Latest creates a new wikidump from the latest valid wikipedia dump.
-func Latest(lang string, checkFor ...string) (w Wikidump, err error) {
+func Latest(tmpDir, lang string, checkFor ...string) (w Wikidump, err error) {
 	dates, err := dumpDates(lang)
 	if err != nil {
 		return
 	}
 
 	for i := len(dates) - 1; i >= 0; i-- {
-		w, err = From(lang, dates[i])
+		w, err = From(tmpDir, lang, dates[i])
 		if err == nil && w.CheckFor(checkFor...) == nil {
 			return
 		}
@@ -29,7 +29,7 @@ func Latest(lang string, checkFor ...string) (w Wikidump, err error) {
 }
 
 // From creates a new wikidump from the specified date.
-func From(lang string, t time.Time) (w Wikidump, err error) {
+func From(tmpDir, lang string, t time.Time) (w Wikidump, err error) {
 	fail := func(e error) (Wikidump, error) {
 		w, err = Wikidump{}, e
 		return w, err
@@ -56,10 +56,10 @@ func From(lang string, t time.Time) (w Wikidump, err error) {
 	if err := json.Unmarshal(body, &data); err != nil {
 		return fail(errors.Wrap(err, "Error: unable to Unmarshal the JSON in the page: "+indexURL))
 	}
-
+	w.tmpDir = tmpDir
 	w.file2Info = make(map[string][]fileInfo, len(data.Jobs))
 	for file, statusFiles := range data.Jobs {
-		if statusFiles.Status != "done" {
+		if statusFiles.Status != "done" || len(statusFiles.Files) == 0 {
 			continue
 		}
 

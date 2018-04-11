@@ -5,11 +5,13 @@ import (
 )
 
 func TestLatest(t *testing.T) {
-	w, err := Latest("en", "metahistory7zdump")
+	files := []string{"articlesmultistreamdump", "langlinkstable", "pagelinkstable", "imagetable", "iwlinkstable", "metacurrentdumprecombine", "usergroupstable", "flaggedpagestable", "xmlpagelogsdump", "changetagstable", "flaggedrevstable", "xmlpagelogsdumprecombine", "imagelinkstable", "pagetable", "articlesdumprecombine", "metacurrentdump", "pagepropstable", "metahistory7zdump", "sitestatstable", "articlesdump", "templatelinkstable", "geotagstable", "categorylinkstable", "pagerestrictionstable", "namespaces", "abstractsdumprecombine", "allpagetitlesdump", "abstractsdump", "xmlstubsdumprecombine", "pagetitlesdump", "externallinkstable", "xmlstubsdump", "categorytable", "wbcentityusagetable", "metahistorybz2dump", "sitestable", "redirecttable", "protectedtitlestable"}
+	w, err := Latest("en", files...)
 	if err != nil {
 		t.Error("Latest returns ", err)
 	}
-	if len(w.file2Info) == 0 {
-		t.Error("Latest returns an empty file index")
+	if err := w.CheckFor(files...); err != nil {
+		t.Error("CheckFor on Latest returns ", err)
 	}
+
 }
