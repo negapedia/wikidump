@@ -4,12 +4,12 @@ package wikidump
 import (
 	"context"
 	"crypto/sha1"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
-	"runtime"
 	"strings"
 	"time"
 
@@ -71,10 +71,6 @@ func (w Wikidump) open(ctx context.Context, fi fileInfo) (r io.ReadCloser, err e
 		r, err = unGZip(r)
 	}
 
-	if err == nil { //Just in case the caller doesn't close the reader
-		runtime.SetFinalizer(r, (io.ReadCloser).Close)
-	}
-
 	return
 }
 
@@ -106,28 +102,29 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r io.ReadCloser, err 
 		}
 		return err0
 	}
-	defer func() {
-		if err != nil {
-			fclose()
-		}
-	}()
+	fail := func(e error) (io.ReadCloser, error) {
+		fclose()
+		r, err = nil, e
+		return r, err
+	}
 
 	body, err := stream(ctx, fi)
 	if err != nil {
-		return
+		return fail(err)
 	}
 	defer body.Close()
 
 	hash := sha1.New()
 	_, err = io.Copy(io.MultiWriter(tempFile, hash), body)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error: unable to copy to file the following url: "+fi.URL)
+		return fail(errors.Wrap(err, "Error: unable to copy to file the following url: "+fi.URL))
 	}
 
-	if string(hash.Sum(nil)) != fi.SHA1 {
-		return nil, errors.New("Error: mismatched SHA1 for the file downloaded from the following url: " + fi.URL)
+	if fmt.Sprintf("%x", hash.Sum(nil)) != fi.SHA1 {
+		return fail(errors.New("Error: mismatched SHA1 for the file downloaded from the following url: " + fi.URL))
 	}
 
+	tempFile.Seek(0, 0)
 	return readClose{tempFile, fclose}, nil
 }
 

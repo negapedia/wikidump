@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//SQL2CSV transforms on the fly a data SQL dump from dumps.wikimedia.org into a clean CSV
+//SQL2CSV transforms on the fly a SQL data dump from dumps.wikimedia.org into a clean CSV
 func SQL2CSV(file io.Reader) io.Reader {
 	return &_SQL2CSV{file: bufio.NewReader(file)}
 }
