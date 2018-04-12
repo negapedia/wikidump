@@ -1,4 +1,3 @@
-// Package wikidump provides primitives for get the latest wikipedia dump
 package wikidump
 
 import (
@@ -64,9 +63,9 @@ func From(tmpDir, lang string, t time.Time) (w Wikidump, err error) {
 		}
 
 		infos := make([]fileInfo, 0, len(statusFiles.Files))
-		for _, info := range statusFiles.Files {
-			info.URL = "https://dumps.wikimedia.org" + info.URL
-			infos = append(infos, info)
+		for _, fi := range statusFiles.Files {
+			fi.URL = "https://dumps.wikimedia.org" + fi.URL
+			infos = append(infos, fi)
 		}
 		w.file2Info[file] = infos
 	}

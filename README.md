@@ -9,7 +9,7 @@ wikidump
 Description
 -----------
 
-Package wikidump is a golang package that provides utility functions for downloading the wikipedia dump.
+Package wikidump is a golang package that provides utility Package wikidump provides utility functions for downloading and extracting wikipedia dumps.
 
 Installation
 ------------
