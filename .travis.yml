@@ -27,9 +27,9 @@ notifications:
 addons:
   apt:
     sources:
-    - sourceline: 'deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse'
+    - sourceline: 'deb http://archive.ubuntu.com/ubuntu bionic-backports main restricted universe multiverse'
     packages:
-    - p7zip-full-16.02
+    - p7zip-full_16.02
 
 # Anything in before_script that returns a nonzero exit code will
 # flunk the build and immediately stop. It's sorta like having
