@@ -27,7 +27,7 @@ notifications:
 addons:
   apt:
     sources:
-    - sourceline: 'deb https://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse'
+    - sourceline: 'deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse'
     packages:
     - p7zip-full-16.02
 
