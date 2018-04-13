@@ -1,3 +1,4 @@
+sudo: required
 #modified from https://gist.github.com/y0ssar1an/df2dab474520c4086926f672c52db139
 language: go
 
@@ -23,12 +24,18 @@ matrix:
 notifications:
   email: false
 
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse'
+      key_url: 'http://archive.ubuntu.com/ubuntu/dists/xenial-backports/Release.gpg'
+    packages:
+    - p7zip-full-16.02
+
 # Anything in before_script that returns a nonzero exit code will
 # flunk the build and immediately stop. It's sorta like having
-# set -e enabled in bash. 
+# set -e enabled in bash.
 before_script:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y p7zip-full=16.02
   - go get honnef.co/go/tools/cmd/megacheck                     # Badass static analyzer/linter
   - go get github.com/mattn/goveralls
 
