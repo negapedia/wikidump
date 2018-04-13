@@ -29,7 +29,7 @@ addons:
     sources:
     - sourceline: 'deb http://archive.ubuntu.com/ubuntu bionic-backports main restricted universe multiverse'
     packages:
-    - p7zip-full/bionic-backports
+    - p7zip-full=16.02
 
 # Anything in before_script that returns a nonzero exit code will
 # flunk the build and immediately stop. It's sorta like having
