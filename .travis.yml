@@ -35,7 +35,8 @@ before_script:
     rm p7zip.tar.bz2;
     mv p7zip* p7zip;
     cd p7zip;
-    sudo make all3; 
+    DEST_HOME=/usr DEST_MAN=/usr/share/man DEST_SHARE_DOC=/usr/share/doc/p7zip-16.02 make all3 install;
+
   - go get honnef.co/go/tools/cmd/megacheck                     # Badass static analyzer/linter
   - go get github.com/mattn/goveralls
 
