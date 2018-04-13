@@ -33,10 +33,8 @@ before_script:
     curl -fsSL "https://downloads.sourceforge.net/p7zip/p7zip_16.02_src_all.tar.bz2" -o p7zip.tar.bz2;
     tar -xjf p7zip.tar.bz2;
     rm p7zip.tar.bz2;
-    mv p7zip* p7zip;
-    cd p7zip;
-    DEST_HOME=/usr DEST_MAN=/usr/share/man DEST_SHARE_DOC=/usr/share/doc/p7zip-16.02 make all3 install;
-
+    cd p7zip*;
+    sudo make DEST_HOME=/usr all3 install;
   - go get honnef.co/go/tools/cmd/megacheck                     # Badass static analyzer/linter
   - go get github.com/mattn/goveralls
 
