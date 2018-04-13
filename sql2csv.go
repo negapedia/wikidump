@@ -51,11 +51,7 @@ func (r *_SQL2CSV) refill() (err error) {
 		r.err = err
 	}()
 
-	var buffer []byte
-	for !bytes.HasPrefix(buffer, []byte("INSERT INTO")) && err == nil {
-		buffer, err = r.file.ReadBytes('\n')
-	}
-
+	buffer, err := r.nextLine()
 	if len(buffer) == 0 {
 		return err
 	}
@@ -96,4 +92,11 @@ func isEnabled(b []byte) bool {
 		count++
 	}
 	return count%2 == 0
+}
+
+func (r *_SQL2CSV) nextLine() (buffer []byte, err error) {
+	for !bytes.HasPrefix(buffer, []byte("INSERT INTO")) && err == nil {
+		buffer, err = r.file.ReadBytes('\n')
+	}
+	return
 }

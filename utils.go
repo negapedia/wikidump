@@ -34,28 +34,53 @@ func unBZip2(r io.ReadCloser) (io.ReadCloser, error) {
 }
 
 func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
-	f, ok := ri.(*os.File) //Hackity hackity - it doesn't exist a fully proofed golang version
-	if !ok {
-		err = errors.New("Unable to reach the underlying file")
-		return
+	fail := func(e error) (io.ReadCloser, error) {
+		ri.Close()
+		ro, err = nil, e
+		return ro, err
 	}
-	f.Close()
-	archive, err := lzmadec.NewArchive(f.Name())
+
+	//Kludgy: it doesn't exist a fully proofed golang version, so we need to reach the file itself
+	fname, err := filename(ri)
 	if err != nil {
-		err = errors.Wrapf(err, "%v while listing content of file %v", lzmadecErr2Meaning(err), f.Name())
-		return
+		return fail(err)
+	}
+
+	archive, err := lzmadec.NewArchive(fname)
+	if err != nil {
+		return fail(errors.Wrapf(err, "%v while listing content of file %v", lzmadecErr2Meaning(err), fname))
 	}
 
 	if len(archive.Entries) != 1 {
-		err = errors.Errorf("Error entries count differs from one - %v - for file %v", len(archive.Entries), f.Name())
-		return
+		return fail(errors.Errorf("Error entries count differs from one - %v - for file %v", len(archive.Entries), fname))
 	}
 
-	ro, err = archive.GetFileReader(archive.Entries[0].Path)
+	r, err := archive.GetFileReader(archive.Entries[0].Path)
 	if err != nil {
-		err = errors.Wrapf(err, "%v while opening file %v", lzmadecErr2Meaning(err), f.Name())
+		return fail(errors.Wrapf(err, "%v while opening file %v", lzmadecErr2Meaning(err), fname))
 	}
-	return
+
+	return readClose{r, func() error {
+		err1 := ri.Close()
+		err0 := os.Remove(fname)
+		if err1 != nil {
+			return err1
+		}
+		return err0
+	}}, nil
+}
+
+func filename(r io.ReadCloser) (string, error) {
+	rc, ok := r.(readClose)
+	if !ok {
+		return "", errors.New("Unable to cast to readClose")
+	}
+	f, ok := rc.Reader.(*os.File)
+	if !ok {
+		return "", errors.New("Unable to cast to *os.File")
+	}
+	f.Close()
+	return f.Name(), nil
 }
 
 func lzmadecErr2Meaning(err error) (defaultM string) {

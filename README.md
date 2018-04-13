@@ -18,6 +18,11 @@ This package can be installed with the go get command:
 
     go get github.com/ebonetti/wikidump
 
+Dependencies
+-------------
+
+This package depends on `p7zip` for 7zip files extraction.
+
 Documentation
 -------------
 API documentation can be found in the [associated godoc reference](https://godoc.org/github.com/ebonetti/wikidump)

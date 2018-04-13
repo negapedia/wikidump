@@ -36,11 +36,11 @@ func (w Wikidump) CheckFor(filenames ...string) error {
 	return nil
 }
 
-//Open return an iterator over the resources associated with the current filename,
+//Open returns an iterator over the resources associated with the current filename,
 //the download can be stopped by the context. Once the iterator is depleted, it returns an io.EOF error.
 //Once an error is returned by the iterator, any subsequent call will return the same error.
-//Open take care of decompressing files on the fly.
 //It is the caller's responsibility to call Close on the Reader when done.
+//Open takes care of checking SHA1 sum, retry download and decompressing files.
 func (w Wikidump) Open(filename string) func(context.Context) (io.ReadCloser, error) {
 	ffi, err := w.file2Info[filename], w.CheckFor(filename)
 	return func(ctx context.Context) (io.ReadCloser, error) {
