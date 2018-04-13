@@ -24,17 +24,18 @@ matrix:
 notifications:
   email: false
 
-addons:
-  apt:
-    sources:
-    - sourceline: 'deb http://archive.ubuntu.com/ubuntu bionic main restricted universe multiverse'
-    packages:
-    - p7zip-full/bionic
-
 # Anything in before_script that returns a nonzero exit code will
 # flunk the build and immediately stop. It's sorta like having
 # set -e enabled in bash.
 before_script:
+  - |
+    set -eux;
+    curl -fsSL "https://downloads.sourceforge.net/p7zip/p7zip_16.02_src_all.tar.bz2" -o p7zip.tar.bz2;
+    tar -xjf p7zip.tar.bz2;
+    rm p7zip.tar.bz2;
+    mv p7zip* p7zip;
+    cd p7zip;
+    sudo make all3; 
   - go get honnef.co/go/tools/cmd/megacheck                     # Badass static analyzer/linter
   - go get github.com/mattn/goveralls
 
