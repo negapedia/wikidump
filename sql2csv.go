@@ -9,8 +9,8 @@ import (
 )
 
 //SQL2CSV transforms on the fly a SQL data dump from dumps.wikimedia.org into a clean CSV
-func SQL2CSV(file io.Reader) io.Reader {
-	return &_SQL2CSV{file: bufio.NewReader(file)}
+func SQL2CSV(r io.Reader) io.Reader {
+	return &_SQL2CSV{file: bufio.NewReader(r)}
 }
 
 type _SQL2CSV struct {
@@ -51,31 +51,24 @@ func (r *_SQL2CSV) refill() (err error) {
 		r.err = err
 	}()
 
-	buffer, err := r.nextLine()
-	if len(buffer) == 0 {
+	b, rawBuffer, err := r.nextRawBuffer()
+	if err != nil {
 		return err
 	}
 
-	b := buffer[:0]
-	begin := bytes.Index(buffer, []byte("("))
-	end := bytes.LastIndex(buffer, []byte(")"))
-	if begin == -1 || end == -1 || begin > end {
-		return errors.Errorf("_SQL2CSV: invalid input error.")
-	}
-	buffer = buffer[begin+1 : end]
 	inString := false
-	for i, c := range buffer {
+	for i, c := range rawBuffer {
 		switch {
-		case !inString && bytes.HasSuffix(buffer[:i+1], []byte("),(")):
+		case !inString && bytes.HasSuffix(rawBuffer[:i+1], []byte("),(")):
 			b = append(b[:len(b)-2], '\n')
-		case c == '\'' && isEnabled(buffer[:i]):
+		case c == '\'' && isEnabled(rawBuffer[:i]):
 			b = append(b, '"')
 			inString = !inString
-		case c == '\'' /*&& !isEnabled(buffer[:i])*/ :
+		case c == '\'' /*&& !isEnabled(rawBuffer[:i])*/ :
 			b = append(b[:len(b)-1], '\'')
-		case c == '"' && isEnabled(buffer[:i]):
-			return errors.Errorf("_SQL2CSV: error invalid \" in input.")
-		case c == '"' /*&& !isEnabled(buffer[:i])*/ :
+		case c == '"' && isEnabled(rawBuffer[:i]):
+			return errors.Errorf("SQL2CSV: error invalid \" in input.")
+		case c == '"' /*&& !isEnabled(rawBuffer[:i])*/ :
 			b = append(b[:len(b)-1], '"', '"')
 		default:
 			b = append(b, c)
@@ -94,9 +87,22 @@ func isEnabled(b []byte) bool {
 	return count%2 == 0
 }
 
-func (r *_SQL2CSV) nextLine() (buffer []byte, err error) {
-	for !bytes.HasPrefix(buffer, []byte("INSERT INTO")) && err == nil {
-		buffer, err = r.file.ReadBytes('\n')
+func (r *_SQL2CSV) nextRawBuffer() (buffer, rawBuffer []byte, err error) {
+	//fetch next line
+	for !bytes.HasPrefix(rawBuffer, []byte("INSERT INTO")) && err == nil {
+		rawBuffer, err = r.file.ReadBytes('\n')
 	}
+
+	if len(rawBuffer) == 0 {
+		return nil, nil, err
+	}
+
+	buffer = rawBuffer[:0]
+	begin := bytes.Index(rawBuffer, []byte("("))
+	end := bytes.LastIndex(rawBuffer, []byte(")"))
+	if begin == -1 || end == -1 || begin > end {
+		return nil, nil, errors.Errorf("SQL2CSV: invalid input error.")
+	}
+	rawBuffer = rawBuffer[begin+1 : end]
 	return
 }
