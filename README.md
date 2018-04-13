@@ -21,7 +21,7 @@ This package can be installed with the go get command:
 Dependencies
 -------------
 
-This package depends on `p7zip` for 7zip files extraction.
+This package depends on `p7zip>=16.02` for 7zip files extraction.
 
 Documentation
 -------------
