@@ -28,7 +28,6 @@ addons:
   apt:
     sources:
     - sourceline: 'deb https://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse'
-      key_url: 'https://archive.ubuntu.com/ubuntu/dists/xenial-backports/Release.gpg'
     packages:
     - p7zip-full-16.02
 
