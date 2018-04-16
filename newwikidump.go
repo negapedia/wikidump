@@ -55,6 +55,7 @@ func From(tmpDir, lang string, t time.Time) (w Wikidump, err error) {
 	if err := json.Unmarshal(body, &data); err != nil {
 		return fail(errors.Wrap(err, "Error: unable to Unmarshal the JSON in the page: "+indexURL))
 	}
+	w.date = t
 	w.tmpDir = tmpDir
 	w.file2Info = make(map[string][]fileInfo, len(data.Jobs))
 	for file, statusFiles := range data.Jobs {

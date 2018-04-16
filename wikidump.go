@@ -20,6 +20,7 @@ import (
 type Wikidump struct {
 	file2Info map[string][]fileInfo
 	tmpDir    string
+	date      time.Time
 }
 
 type fileInfo struct {
@@ -34,6 +35,11 @@ func (w Wikidump) CheckFor(filenames ...string) error {
 		}
 	}
 	return nil
+}
+
+//Date returns the date of the current Dump
+func (w Wikidump) Date() time.Time {
+	return w.date
 }
 
 //Open returns an iterator over the resources associated with the current filename,

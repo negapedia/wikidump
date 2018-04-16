@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestUnit(t *testing.T) {
@@ -19,6 +20,11 @@ func TestUnit(t *testing.T) {
 	if err != nil {
 		t.Error("Latest returns ", err)
 	}
+
+	if d := w.Date(); d.Before(time.Now().Add(-time.Hour * 24 * 365)) {
+		t.Error("Date is invalid", d)
+	}
+
 	next := w.Open(testingFilename)
 	r, err := next(context.Background())
 	if err != nil {
@@ -41,7 +47,7 @@ func TestOpen(t *testing.T) {
 	for name, info := range name2MyInfo {
 		ffi = append(ffi, fileInfo{"http://" + address + name, info.SHA1})
 	}
-	tDump := Wikidump{map[string][]fileInfo{"helloword": ffi}, ""}
+	tDump := Wikidump{map[string][]fileInfo{"helloword": ffi}, "", time.Now()}
 	next := tDump.Open("helloword")
 	r, err := next(context.Background())
 	for ; err == nil; r, err = next(context.Background()) {
