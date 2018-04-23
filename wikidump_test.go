@@ -37,6 +37,10 @@ func TestUnit(t *testing.T) {
 		t.Error("ReadAll on csv returns ", err)
 	}
 
+	if err = r.Close(); err != nil {
+		t.Error("Closing returns ", err)
+	}
+
 	if _, err = next(context.Background()); err != io.EOF {
 		t.Error("Open should return only one file for "+testingFilename+" while it returns ", err)
 	}
@@ -53,11 +57,14 @@ func TestOpen(t *testing.T) {
 	for ; err == nil; r, err = next(context.Background()) {
 		defer r.Close()
 		data, err := ioutil.ReadAll(r)
+		closeErr := r.Close()
 		switch {
 		case err != nil:
 			t.Error("Open iterator returns ", err)
 		case string(data) != helloword:
 			t.Error("Data should be " + helloword + " but it's " + string(data))
+		case closeErr != nil:
+			t.Error("Closing returns ", closeErr)
 		}
 	}
 	if err != nil && err != io.EOF {

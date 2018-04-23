@@ -101,8 +101,8 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r io.ReadCloser, err 
 		return nil, errors.Wrap(err, "Error: unable to create temporary file in "+w.tmpDir)
 	}
 	fclose := func() error {
-		err1 := tempFile.Close()
-		err0 := os.Remove(tempFile.Name())
+		err1 := errors.Wrapf(tempFile.Close(), "Error while closing reader of file %v", tempFile.Name())
+		err0 := errors.Wrapf(os.Remove(tempFile.Name()), "Error while removing file %v", tempFile.Name())
 		if err1 != nil {
 			return err1
 		}

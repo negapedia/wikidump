@@ -20,7 +20,12 @@ func unGZip(ri io.ReadCloser) (io.ReadCloser, error) {
 		return nil, err
 	}
 	return readClose{ro, func() error {
-		err1 := ro.Close()
+		fname := ""
+		if f, err := asFile(ri); err == nil {
+			fname = f.Name()
+		}
+
+		err1 := errors.Wrapf(ro.Close(), "Error while closing gzip reader of file %v", fname)
 		err0 := ri.Close()
 		if err1 != nil {
 			return err1
@@ -40,12 +45,14 @@ func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
 		return ro, err
 	}
 
-	//Kludgy: it doesn't exist a fully proofed golang version, so we need to reach the file itself
-	fname, err := filename(ri)
+	//Kludgy: it doesn't exist a fully proofed golang 7zip reader, so we need to reach the file itself in order to use p7zip exctractor
+	f, err := asFile(ri)
 	if err != nil {
 		return fail(err)
 	}
+	f.Close()
 
+	fname := f.Name()
 	archive, err := lzmadec.NewArchive(fname)
 	if err != nil {
 		return fail(errors.Wrapf(err, "%v while listing content of file %v", lzmadecErr2Meaning(err), fname))
@@ -61,8 +68,8 @@ func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
 	}
 
 	return readClose{r, func() error {
-		err1 := ri.Close()
-		err0 := os.Remove(fname)
+		err1 := errors.Wrapf(r.Close(), "Error while closing 7zip reader of file %v", fname)
+		err0 := errors.Wrapf(os.Remove(fname), "Error while closing 7zip reader of file %v", fname)
 		if err1 != nil {
 			return err1
 		}
@@ -70,17 +77,17 @@ func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
 	}}, nil
 }
 
-func filename(r io.ReadCloser) (string, error) {
+func asFile(r io.ReadCloser) (f *os.File, err error) {
 	rc, ok := r.(readClose)
 	if !ok {
-		return "", errors.New("Unable to cast to readClose")
+		return nil, errors.New("Unable to cast to readClose")
 	}
-	f, ok := rc.Reader.(*os.File)
+	f, ok = rc.Reader.(*os.File)
 	if !ok {
-		return "", errors.New("Unable to cast to *os.File")
+		return nil, errors.New("Unable to cast to *os.File")
 	}
-	f.Close()
-	return f.Name(), nil
+
+	return f, nil
 }
 
 func lzmadecErr2Meaning(err error) (defaultM string) {
