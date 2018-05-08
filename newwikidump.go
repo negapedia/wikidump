@@ -24,6 +24,7 @@ func Latest(tmpDir, lang string, checkFor ...string) (w Wikidump, err error) {
 			return
 		}
 	}
+	w = Wikidump{}
 	return
 }
 
@@ -98,6 +99,10 @@ func dumpDates(lang string) (dates []time.Time, err error) {
 			return fail(errors.Wrap(err, "Error: unable to parse date: "+m[1]))
 		}
 		dates = append(dates, t)
+	}
+
+	if len(dates) == 0 {
+		err = errors.New("No dump dates with " + lang + " dump")
 	}
 	return
 }
