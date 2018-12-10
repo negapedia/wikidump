@@ -64,7 +64,7 @@ func (w Wikidump) Open(filename string) func(context.Context) (io.ReadCloser, er
 	}
 }
 
-func (w Wikidump) open(ctx context.Context, fi fileInfo) (r io.ReadCloser, err error) {
+func (w Wikidump) open(ctx context.Context, fi fileInfo) (r virtualFile, err error) {
 	r, err = w.stubbornStore(ctx, fi)
 	switch {
 	case err != nil:
@@ -80,14 +80,14 @@ func (w Wikidump) open(ctx context.Context, fi fileInfo) (r io.ReadCloser, err e
 	return
 }
 
-func (w Wikidump) stubbornStore(ctx context.Context, fi fileInfo) (r io.ReadCloser, err error) {
+func (w Wikidump) stubbornStore(ctx context.Context, fi fileInfo) (r virtualFile, err error) {
 	for t := time.Second; t < time.Hour; t = t * 2 { //exponential backoff
 		if r, err = w.store(ctx, fi); err == nil {
 			return
 		}
 		select {
 		case <-ctx.Done():
-			return nil, errors.Wrap(ctx.Err(), "Error: change in context state")
+			return virtualFile{}, errors.Wrap(ctx.Err(), "Error: change in context state")
 		case <-time.After(t):
 			//do nothing
 		}
@@ -95,10 +95,10 @@ func (w Wikidump) stubbornStore(ctx context.Context, fi fileInfo) (r io.ReadClos
 	return
 }
 
-func (w Wikidump) store(ctx context.Context, fi fileInfo) (r io.ReadCloser, err error) {
+func (w Wikidump) store(ctx context.Context, fi fileInfo) (r virtualFile, err error) {
 	tempFile, err := ioutil.TempFile(w.tmpDir, path.Base(fi.URL))
 	if err != nil {
-		return nil, errors.Wrap(err, "Error: unable to create temporary file in "+w.tmpDir)
+		return virtualFile{}, errors.Wrap(err, "Error: unable to create temporary file in "+w.tmpDir)
 	}
 	fclose := func() error {
 		err1 := errors.Wrapf(tempFile.Close(), "Error while closing reader of file %v", tempFile.Name())
@@ -108,9 +108,9 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r io.ReadCloser, err 
 		}
 		return err0
 	}
-	fail := func(e error) (io.ReadCloser, error) {
+	fail := func(e error) (virtualFile, error) {
 		fclose()
-		r, err = nil, e
+		r, err = virtualFile{}, e
 		return r, err
 	}
 
@@ -131,7 +131,7 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r io.ReadCloser, err 
 	}
 
 	tempFile.Seek(0, 0)
-	return readClose{tempFile, fclose}, nil
+	return virtualFile{tempFile, fclose, tempFile.Name()}, nil
 }
 
 func stream(ctx context.Context, fi fileInfo) (r io.ReadCloser, err error) {

@@ -5,7 +5,6 @@ import (
 	"compress/bzip2"
 	"compress/gzip"
 	"io"
-	"os"
 	"os/exec"
 	"syscall"
 
@@ -13,46 +12,34 @@ import (
 	"github.com/pkg/errors"
 )
 
-func unGZip(ri io.ReadCloser) (io.ReadCloser, error) {
+func unGZip(ri virtualFile) (virtualFile, error) {
 	ro, err := gzip.NewReader(ri)
 	if err != nil {
 		ri.Close()
-		return nil, err
+		return virtualFile{}, err
 	}
-	return readClose{ro, func() error {
-		fname := ""
-		if f, err := asFile(ri); err == nil {
-			fname = f.Name()
-		}
-
-		err1 := errors.Wrapf(ro.Close(), "Error while closing gzip reader of file %v", fname)
+	return virtualFile{ro, func() error {
+		err1 := errors.Wrapf(ro.Close(), "Error while closing gzip reader of file %v", ri.Name())
 		err0 := ri.Close()
 		if err1 != nil {
 			return err1
 		}
 		return err0
-	}}, nil
+	}, ri.Name()}, nil
 }
 
-func unBZip2(r io.ReadCloser) (io.ReadCloser, error) {
-	return readClose{bzip2.NewReader(bufio.NewReader(r)), r.Close}, nil
+func unBZip2(r virtualFile) (virtualFile, error) {
+	return virtualFile{bzip2.NewReader(bufio.NewReader(r)), r.Close, r.Name()}, nil
 }
 
-func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
-	fail := func(e error) (io.ReadCloser, error) {
+func un7Zip(ri virtualFile) (ro virtualFile, err error) {
+	fail := func(e error) (virtualFile, error) {
 		ri.Close()
-		ro, err = nil, e
+		ro, err = virtualFile{}, e
 		return ro, err
 	}
 
-	//Kludgy: it doesn't exist a fully proofed golang 7zip reader, so we need to reach the file itself in order to use p7zip exctractor
-	f, err := asFile(ri)
-	if err != nil {
-		return fail(err)
-	}
-	f.Close()
-
-	fname := f.Name()
+	fname := ri.Name()
 	archive, err := lzmadec.NewArchive(fname)
 	if err != nil {
 		return fail(errors.Wrapf(err, "%v while listing content of file %v", lzmadecErr2Meaning(err), fname))
@@ -67,27 +54,14 @@ func un7Zip(ri io.ReadCloser) (ro io.ReadCloser, err error) {
 		return fail(errors.Wrapf(err, "%v while opening file %v", lzmadecErr2Meaning(err), fname))
 	}
 
-	return readClose{r, func() error {
+	return virtualFile{r, func() error {
 		err1 := errors.Wrapf(r.Close(), "Error while closing 7zip reader of file %v", fname)
-		err0 := errors.Wrapf(os.Remove(fname), "Error while closing 7zip reader of file %v", fname)
+		err0 := ri.Close()
 		if err1 != nil {
 			return err1
 		}
 		return err0
-	}}, nil
-}
-
-func asFile(r io.ReadCloser) (f *os.File, err error) {
-	rc, ok := r.(readClose)
-	if !ok {
-		return nil, errors.New("Unable to cast to readClose")
-	}
-	f, ok = rc.Reader.(*os.File)
-	if !ok {
-		return nil, errors.New("Unable to cast to *os.File")
-	}
-
-	return f, nil
+	}, ri.Name()}, nil
 }
 
 func lzmadecErr2Meaning(err error) (defaultM string) {
@@ -128,11 +102,16 @@ var code2Meaning = map[int]string{
 	255: "User stopped the process",
 }
 
-type readClose struct {
+type virtualFile struct {
 	io.Reader
 	Closer func() error
+	name   string
 }
 
-func (r readClose) Close() error {
-	return r.Closer()
+func (f virtualFile) Close() error {
+	return f.Closer()
+}
+
+func (f virtualFile) Name() string {
+	return f.name
 }
