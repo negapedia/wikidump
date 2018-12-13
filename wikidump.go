@@ -130,7 +130,14 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r virtualFile, err er
 		return fail(errors.New("Error: mismatched SHA1 for the file downloaded from the following url: " + fi.URL))
 	}
 
-	tempFile.Seek(0, 0)
+	if err = tempFile.Close(); err != nil {
+		return fail(errors.Wrap(err, "Error: unable to close the following file: "+tempFile.Name()))
+	}
+
+	if tempFile, err = os.Open(tempFile.Name()); err != nil {
+		return fail(errors.Wrap(err, "Error: unable to open the following file: "+tempFile.Name()))
+	}
+
 	return virtualFile{tempFile, fclose, tempFile.Name()}, nil
 }
 
