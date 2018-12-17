@@ -134,9 +134,6 @@ func (w Wikidump) store(ctx context.Context, fi fileInfo) (r virtualFile, err er
 		return fail(errors.Wrap(err, "Error: unable to close the following file: "+tempFile.Name()))
 	}
 
-	//Check file SHA1 just for testing purposes (to be removed)
-	checkFileSHA1(tempFile.Name(), fi.SHA1)
-
 	if tempFile, err = os.Open(tempFile.Name()); err != nil {
 		return fail(errors.Wrap(err, "Error: unable to open the following file: "+tempFile.Name()))
 	}
@@ -159,23 +156,4 @@ func stream(ctx context.Context, fi fileInfo) (r io.ReadCloser, err error) {
 
 	r = resp.Body
 	return
-}
-
-func checkFileSHA1(fname, SHA1 string) {
-	f, err := os.Open(fname)
-	if err != nil {
-		fmt.Print("Warning: unable to open the following file: "+f.Name(), err)
-		return
-	}
-	defer f.Close()
-
-	hash := sha1.New()
-	if _, err := io.Copy(hash, f); err != nil {
-		fmt.Print("Warning: unable to SHA1 the following file: "+f.Name(), err)
-		return
-	}
-
-	if fmt.Sprintf("%x", hash.Sum(nil)) != SHA1 {
-		fmt.Print("Warning: mismatched SHA1 for the file: "+f.Name(), err)
-	}
 }
