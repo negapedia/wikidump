@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -35,7 +36,7 @@ func From(tmpDir, lang string, t time.Time) (w Wikidump, err error) {
 		return w, err
 	}
 
-	indexURL := fmt.Sprintf("https://dumps.wikimedia.org/%vwiki/%v/dumpstatus.json", lang, t.Format("20060102"))
+	indexURL := fmt.Sprintf("https://dumps.wikimedia.org/%vwiki/%v/dumpstatus.json", strings.Replace(lang, "-", "_", -1), t.Format("20060102"))
 	resp, err := http.Get(indexURL)
 	if err != nil {
 		return fail(errors.Wrap(err, "Error: unable to get page: "+indexURL))
@@ -80,7 +81,7 @@ func dumpDates(lang string) (dates []time.Time, err error) {
 		return nil, e
 	}
 	nameExp := regexp.MustCompile(`<a href="(\d+)/">[^\n]+\n`)
-	indexURL := fmt.Sprintf("https://dumps.wikimedia.org/%vwiki/", lang)
+	indexURL := fmt.Sprintf("https://dumps.wikimedia.org/%vwiki/", strings.Replace(lang, "-", "_", -1))
 	resp, err := http.Get(indexURL)
 	if err != nil {
 		return fail(errors.Wrap(err, "Error: unable to get page: "+indexURL))
