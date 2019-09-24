@@ -1,43 +1,26 @@
-sudo: required
-#modified from https://gist.github.com/y0ssar1an/df2dab474520c4086926f672c52db139
+dist: trusty
+
 language: go
 
-# Only the last two Go releases are supported by the Go team with security
-# updates. Any versions older than that should be considered deprecated.
-# Don't bother testing with them. tip builds your code with the latest
-# development version of Go. This can warn you that your code will break
-# in the next version of Go. Don't worry! Later we declare that test runs
-# are allowed to fail on Go tip.
 go:
-  - "1.10"
+  - 1.13
   - master
 
-matrix:
-  # It's ok if our code fails on unstable development versions of Go.
-  allow_failures:
-    - go: master
-  # Don't wait for tip tests to finish. Mark the test run green if the
-  # tests pass on the stable versions of Go.
-  fast_finish: true
-
-# Don't email me the results of the test runs.
 notifications:
   email: false
 
-# Anything in before_script that returns a nonzero exit code will
-# flunk the build and immediately stop. It's sorta like having
-# set -e enabled in bash.
+addons:
+  sonarcloud:
+    organization: "negapedia"
+    token:
+      secure: "jaaoMZyR8PBb6T+cuRzvFjZQdBMHOJ14ruO89rA95RQ5BfhfxOkPodTTdMLpmlFAqlplSVt70gCC/P2GAhNQJcGJtKF3Ha2HRuX4RvMRvIy92CR1JFC+6YeEmF7XxLPzA3v9bEy/tBwpSD6kxSKV4AKch8nOr3rjCPcxL8CZBd+uy9eB9aSmg6zAm/yJq/QFL/1kjhV9PUbTEc/xSk9rtRjeTRwhvqIxWnfEulrOpDvfL4N6YJjlzMkcHetBeclT4SfD2UsKBCnL94AqN2UIvLZ+wfF9ITDlVfxJtXKvHJra1LAKwnK1+UI00EflCLCDpSz5mUMx5XWmAyNbJSkTOZA2t1h0FatRbdTIekSxtAbEPKkjsyuFw44yu3UxuwUG6VjLvuI5TT+XINXrCjowWfik2Ntrqi3IZI43aMze8ZT9TEsJ/QZUjvdRyaogoCgXVSryugRu42PTi3Mp9K9wcWrluOn8VSVvEwYi/67W6T15tCQiSqv1dYzY09JBrDzJ3HogttTtgC8X1K3ko4GG8I0E6K75R5FcyHS71PAiNPgqQ1LG9vN5M0slBGkV4y5KYjEYmcFJETC0MRsjd0y1i9+k6OSetPkv6rVI/it7iKeDwzVXKt+Pge3aHhmVrDRX/j8RD0jmr6jxbxisgDTJAuEgTYtUtNENSUHf4qkPduQ="
+
 before_script:
   - curl -fsSL "https://downloads.sourceforge.net/p7zip/p7zip_16.02_src_all.tar.bz2" -o p7zip.tar.bz2;
   - tar -xjf p7zip.tar.bz2;
   - rm p7zip.tar.bz2;
   - sudo make -C p7zip* DEST_HOME=/usr all3 install;
-  - go get honnef.co/go/tools/cmd/megacheck                     # Badass static analyzer/linter
-  - go get github.com/mattn/goveralls
 
-# script always run to completion (set +e). All of these code checks are must haves
-# in a modern Go project.
 script:
-  - go test -v -race ./...                   # Run all the tests with the race detector enabled
-  - megacheck ./...                          # "go vet on steroids" + linter
-  - goveralls
+  - go test -race ./... -coverprofile=coverage.out
+  - sonar-scanner -Dsonar.projectKey=negapedia_wikidump -Dsonar.projectName=wikidump -Dsonar.projectVersion=1.0 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/*_test.go -Dsonar.go.coverage.reportPaths=coverage.out

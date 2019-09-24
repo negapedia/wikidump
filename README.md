@@ -1,10 +1,16 @@
 wikidump
 ========
 
-[![GoDoc Reference](https://godoc.org/github.com/negapedia/wikidump?status.svg)](http://godoc.org/github.com/negapedia/wikidump)
-[![Build Status](https://travis-ci.org/negapedia/wikidump.svg?branch=master)](https://travis-ci.org/negapedia/wikidump)
-[![Coverage Status](https://coveralls.io/repos/negapedia/wikidump/badge.svg?branch=master)](https://coveralls.io/r/negapedia/wikidump?branch=master)
+[![GoDoc Reference](https://godoc.org/github.com/negapedia/wikidump?status.svg)](https://godoc.org/github.com/negapedia/wikidump)
+[![Build Status](https://travis-ci.org/negapedia/wikidump.svg?branch=develop)](https://travis-ci.org/negapedia/wikidump)
 [![Go Report Card](https://goreportcard.com/badge/github.com/negapedia/wikidump)](https://goreportcard.com/report/github.com/negapedia/wikidump)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=bugs)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=coverage)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=ncloc)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=security_rating)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=negapedia_wikidump&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=negapedia_wikidump)
 
 Description
 -----------
