@@ -20,7 +20,7 @@ before_script:
   - tar -xjf p7zip.tar.bz2;
   - rm p7zip.tar.bz2;
   - sudo make -C p7zip* DEST_HOME=/usr all3 install;
-  - rm -fr p7zip*;
+  - sudo rm -fr p7zip*;
 
 
 script:
