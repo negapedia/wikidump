@@ -18,8 +18,8 @@ addons:
 before_script:
   - curl -fsSL "https://downloads.sourceforge.net/p7zip/p7zip_16.02_src_all.tar.bz2" -o p7zip.tar.bz2;
   - tar -xjf p7zip.tar.bz2;
-  - rm p7zip.tar.bz2;
   - sudo make -C p7zip* DEST_HOME=/usr all3 install;
+  - rm -fr p7zip*;
 
 script:
   - go test -race ./... -coverprofile=coverage.out
